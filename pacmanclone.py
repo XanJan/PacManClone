@@ -34,7 +34,7 @@ class GameRender:
         pygame.init()
         self._width = in_width
         self._height = in_height
-        self.screen = pygame.display.set_mode((in_width, in_height))
+        self._screen = pygame.display.set_mode((in_width, in_height))
         pygame.display.set_caption("Pacman")
         self._clock = pygame.time.Clock()
         self._done = False
@@ -64,7 +64,7 @@ class GameRender:
         self.add_game_object(obj)
         self._walls.append(obj)
 
-    def _handel_events(self):
+    def _handle_events(self):
         pass #!Implement later
 
 
@@ -104,7 +104,7 @@ class PacManGameController:
             "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
         ]
 
-        self.numpy.maze= []
+        self.numpy_maze= []
         self.cookie_spaces = []
         self.reachable_spaces = []
         self.ghost_spawn = []
@@ -128,6 +128,18 @@ class PacManGameController:
                     self.cookie_spaces.append((y, x))
                     self.reachable_spaces.append((y, x))
             self.numpy_maze.append(binary_row)
+
+if __name__ == "__main__":
+    unified_size = 20
+    pacman_game = PacManGameController()
+    size = pacman_game.size
+    game_renderer = GameRender(size[0] * unified_size, size[1] * unified_size)
+
+    for y, row in enumerate(pacman_game.numpy_maze):
+        for x, column in enumerate(row):
+            if column == 0:
+                game_renderer.add_wall(Wall(game_renderer, x, y, unified_size))
+    game_renderer.tick(120)
 
 
 
