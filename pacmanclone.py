@@ -2,6 +2,33 @@ import pygame
 import numpy as np
 import tcod
 
+
+class GameObject:
+    def __init__(self, in_surface, x, y, in_size: int, in_color=(255, 0, 0), is_circle: bool = False):
+        self._size = in_size
+        self._renderer: GameRender = in_surface
+        self._surface = in_surface._screen
+        self.y = y
+        self.x = x
+        self._color = in_color
+        self._circle = is_circle
+        self._shape = pygame.Rect(self.x, self.y, in_size, in_size)
+
+    def draw(self):
+        if self._circle:
+            pygame.draw.circle(self._surface, self._color, self.x, self.y, self._size)
+        else:
+            rect_object = pygame.Rect(self.x, self.y, self._size, self._size)
+            pygame.draw.rect(self._surface, self._color, rect_object, border_radius=4)
+
+    def tick(self):
+        pass
+
+class Wall(GameObject):
+    def __init__(self, in_surface, x, y, in_size: int, in_color=(0, 0, 255)):
+        super().__init__(in_surface, x * in_size, y * in_size, in_size, in_color)
+
+    
 class GameRender:
     def __init__(self, in_width: int, in_height: int):
         pygame.init()
@@ -41,26 +68,68 @@ class GameRender:
         pass #!Implement later
 
 
-class GameObject:
-    def __init__(self, in_surface, x, y, in_size: int, in_color=(255, 0, 0), is_circle: bool = False):
-        self._size = in_size
-        self._renderer: GameRender = in_surface
-        self._surface = in_surface._screen
-        self.y = y
-        self.x = x
-        self._color = in_color
-        self._circle = is_circle
-        self._shape = pygame.Rect(self.x, self.y, in_size, in_size)
+class PacManGameController:
+    def __init__(self):
+        self.ascii_maze = [
+             "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "XP           XX            X",
+            "X XXXX XXXXX XX XXXXX XXXX X",
+            "X XXXX XXXXX XX XXXXX XXXX X",
+            "X XXXX XXXXX XX XXXXX XXXX X",
+            "X                          X",
+            "X XXXX XX XXXXXXXX XX XXXX X",
+            "X XXXX XX XXXXXXXX XX XXXX X",
+            "X      XX    XX    XX      X",
+            "XXXXXX XXXXX XX XXXXX XXXXXX",
+            "XXXXXX XXXXX XX XXXXX XXXXXX",
+            "XXXXXX XX          XX XXXXXX",
+            "XXXXXX XX XXXXXXXX XX XXXXXX",
+            "XXXXXX XX X   G  X XX XXXXXX",
+            "          X G    X          ",
+            "XXXXXX XX X   G  X XX XXXXXX",
+            "XXXXXX XX XXXXXXXX XX XXXXXX",
+            "XXXXXX XX          XX XXXXXX",
+            "XXXXXX XX XXXXXXXX XX XXXXXX",
+            "XXXXXX XX XXXXXXXX XX XXXXXX",
+            "X            XX            X",
+            "X XXXX XXXXX XX XXXXX XXXX X",
+            "X XXXX XXXXX XX XXXXX XXXX X",
+            "X   XX       G        XX   X",
+            "XXX XX XX XXXXXXXX XX XX XXX",
+            "XXX XX XX XXXXXXXX XX XX XXX",
+            "X      XX    XX    XX      X",
+            "X XXXXXXXXXX XX XXXXXXXXXX X",
+            "X XXXXXXXXXX XX XXXXXXXXXX X",
+            "X                          X",
+            "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        ]
 
-    def draw(self):
-        if self._circle:
-            pygame.draw.circle(self._surface, self._color, self.x, self.y, self._size)
-        else:
-            rect_object = pygame.Rect(self.x, self.y, self._size, self._size)
-            pygame.draw.rect(self._surface, self._color, rect_object, border_radius=4)
+        self.numpy.maze= []
+        self.cookie_spaces = []
+        self.reachable_spaces = []
+        self.ghost_spawn = []
 
-    def tick(self):
-        pass
+        self.size = (0, 0)
+        self.convert_maze_to_numpy()
+        #self.p = Pathfinder(self.numpy_maze)   #Use later
 
-            
+    def convert_maze_to_numpy(self):
+        for x, row in enumerate(self.ascii_maze):
+            self.size = (len(row), x + 1)
+            binary_row = []
+            for y, column in enumerate(row):
+                if column == "G":
+                    self.ghost_spawn.append((y, x))
+                
+                if column == "X":
+                    binary_row.append(0)
+                else:
+                    binary_row.append(1)
+                    self.cookie_spaces.append((y, x))
+                    self.reachable_spaces.append((y, x))
+            self.numpy_maze.append(binary_row)
+
+
+
     
+
