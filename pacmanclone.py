@@ -1,7 +1,20 @@
 import pygame
 import numpy as np
 import tcod
+from enum import Enum
 
+def translate_screen_to_maze(in_coords, in_size=20):
+    return int(in_coords[0] / in_size), int(in_coords[1] / in_size)
+
+def translate_maze_to_screen(in_coords, in_size=20):
+    return in_coords[0] * in_size, in_coords[1] * in_size
+
+class Direction(Enum):
+    LEFT = 0
+    UP = 1
+    RIGHT = 2
+    DOWN = 3,
+    NONE = 4
 
 class GameObject:
     def __init__(self, in_surface, x, y, in_size: int, in_color=(255, 0, 0), is_circle: bool = False):
@@ -28,7 +41,14 @@ class Wall(GameObject):
     def __init__(self, in_surface, x, y, in_size: int, in_color=(0, 0, 255)):
         super().__init__(in_surface, x * in_size, y * in_size, in_size, in_color)
 
-    
+class MovableObject(GameObject):
+    def __init__(self, in_surface, x, y, in_size: int, in_color=(255, 0, 0), is_circle: bool = False):
+        super().__init__(in_surface, x, y, in_size, in_color, is_circle)
+        self.current_direction = Direction.NONE
+        self.direction_buffer = Direction.NONE
+        self.last_working_direction = Direction.NONE
+        self.location_queue = []
+        self.next_target = None   
 class GameRender:
     def __init__(self, in_width: int, in_height: int):
         pygame.init()
@@ -113,6 +133,13 @@ class PacManGameController:
         self.convert_maze_to_numpy()
         #self.p = Pathfinder(self.numpy_maze)   #Use later
 
+        self.ghost_colors = [
+            (255, 184, 255),
+            (255, 0, 20),
+            (0, 255, 255),
+            (255, 184, 82)
+        ]
+
     def convert_maze_to_numpy(self):
         for x, row in enumerate(self.ascii_maze):
             self.size = (len(row), x + 1)
@@ -129,17 +156,30 @@ class PacManGameController:
                     self.reachable_spaces.append((y, x))
             self.numpy_maze.append(binary_row)
 
+class Ghost(MovableObject):
+    def __init__(self, in_surface, x, y, in_size: int, in_game_controller, in_color=(255, 0, 0)):
+        super().__init__(in_surface, x, y, in_size, in_color, False)
+        self.game_controller = in_game_controller
+
+
 if __name__ == "__main__":
     unified_size = 20
     pacman_game = PacManGameController()
     size = pacman_game.size
     game_renderer = GameRender(size[0] * unified_size, size[1] * unified_size)
 
+    for i, ghost_spawn in enumerate(pacman_game.ghost_spawn):
+        translated = translate_maze_to_screen(ghost_spawn)
+        ghost = Ghost(game_renderer, translated[0], translated[1], unified_size, pacman_game, pacman_game.ghost_colors[i % 4])
+        game_renderer.add_game_object(ghost)
+
+
     for y, row in enumerate(pacman_game.numpy_maze):
         for x, column in enumerate(row):
             if column == 0:
                 game_renderer.add_wall(Wall(game_renderer, x, y, unified_size))
     game_renderer.tick(120)
+
 
 
 
