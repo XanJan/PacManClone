@@ -4,7 +4,11 @@ import tcod
 import random
 from enum import Enum
 
+pygame.init()
 game_window_size = 20
+points_text_font = pygame.font.Font(None, 32)
+point_text = points_text_font.render("Points: ", True, (255, 255, 255), None)
+
 class Direction(Enum):
     LEFT = 0
     UP = 1
@@ -84,6 +88,7 @@ class GameRenderer:
             for game_object in self._game_objects:
                 game_object.tick()
                 game_object.draw()
+                self._screen.blit(point_text, point_text.get_rect())
 
             pygame.display.flip()
             self._clock.tick(in_fps)
@@ -219,6 +224,7 @@ class Hero(MovableObject):
             self.current_direction = self.last_working_direction
 
     def handle_cookie_pickup(self):
+        #points
         collision_rect = pygame.Rect(self.x, self.y, self._size, self._size)
         cookies = self._renderer.get_cookies()
         game_objects = self._renderer.get_game_objects()
@@ -226,6 +232,7 @@ class Hero(MovableObject):
             collides = collision_rect.colliderect(cookie.get_shape())
             if collides and cookie in game_objects:
                 game_objects.remove(cookie)
+                #points += 1
 
     def draw(self):
         half_size = self._size / 2
